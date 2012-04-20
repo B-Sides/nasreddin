@@ -5,7 +5,7 @@ task :default => [:test, :build]
 
 desc 'Run all the tests'
 task :test do
-  sh 'bacon -a'
+  sh "bacon -a -r#{File.dirname(__FILE__)}/test/helper"
 end
 
 task :bump => 'bump:patch'
