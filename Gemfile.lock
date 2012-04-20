@@ -1,0 +1,26 @@
+PATH
+  remote: .
+  specs:
+    nasreddin (0.0.0)
+      zmq
+
+GEM
+  remote: http://rubygems.org/
+  specs:
+    bacon (1.1.0)
+    coderay (1.0.6)
+    method_source (0.7.1)
+    pry (0.9.9.3)
+      coderay (~> 1.0.5)
+      method_source (~> 0.7.1)
+      slop (>= 2.4.4, < 3)
+    slop (2.4.4)
+    zmq (2.1.4)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  bacon
+  nasreddin!
+  pry
