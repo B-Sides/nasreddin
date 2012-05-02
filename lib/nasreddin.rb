@@ -1,1 +1,1 @@
-require 'nasreddin/blind_socket'
+require 'nasreddin/version'

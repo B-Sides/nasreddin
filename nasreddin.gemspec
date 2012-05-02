@@ -8,16 +8,18 @@ Gem::Specification.new do |s|
   s.authors     = ['Josh Ballanco']
   s.email       = ['jballanc@gmail.com']
   s.homepage    = ''
-  s.summary     = %q| A library for making distributed calls via ZeroMQ |
-  s.description = %q| Nasreddin is a library to make distributed calls via ZeroMQ |
+  s.summary     = %q| A library for making distributed calls via HornetQ |
+  s.description = %q| Nasreddin is a library to make distributed calls via HornetQ |
 
   s.rubyforge_project = ''
 
-  s.files         = Dir['./{bin,lib,test}/**/*']
+  s.files         = Dir['./{lib,test}/**/*']
   s.test_files    = Dir['./test/**/*']
-  s.executables   = Dir['./bin/*']
   s.require_paths = ["lib"]
 
-  s.add_runtime_dependency 'zmq'
+  s.add_runtime_dependency 'torquebox', '~> 2.0.0'
+  s.add_runtime_dependency 'torquebox-server', '~> 2.0.0'
+  s.add_runtime_dependency 'rack', '~> 1.4.1'
+  s.add_development_dependency 'torquespec'
   s.add_development_dependency 'bacon'
 end
