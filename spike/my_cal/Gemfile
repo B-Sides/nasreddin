@@ -1,0 +1,7 @@
+source 'https://rubygems.org'
+
+gem 'sinatra'
+gem 'nasreddin', path: '../../'
+gem 'json-jruby'
+gem 'torquebox'
+gem 'torquebox-server'

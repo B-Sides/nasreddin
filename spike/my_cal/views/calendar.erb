@@ -1,0 +1,5 @@
+<ul>
+  <%= @this_month.each.map do |day|
+    "<li>The #{day.date} of the month is a #{day.name}</li>"
+  end.join("\n") %>
+</ul>

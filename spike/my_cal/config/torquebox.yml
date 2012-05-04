@@ -1,0 +1,6 @@
+---
+web:
+  context: "/my_cal"
+
+ruby:
+  version: "1.9"

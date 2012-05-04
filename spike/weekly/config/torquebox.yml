@@ -1,0 +1,10 @@
+---
+web:
+  context: "/weekly"
+  rackup: <%= File.expand_path('../../config.ru', __FILE__) %>
+
+application:
+  root: <%= File.expand_path('../../', __FILE__) %>
+
+ruby:
+  version: "1.9"

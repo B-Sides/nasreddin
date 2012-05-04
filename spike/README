@@ -1,0 +1,6 @@
+Testing HornetQ is hard...
+
+Instead, these are two apps to create the two endpoints for a spike:
+
+weekly - a rails app that serves a resource providing weekday names in a language for weekday numbers
+my_cal - a sinatra app that consumes the weekly service to present weekday names on a calendar
