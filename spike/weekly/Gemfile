@@ -4,5 +4,5 @@ gem 'rails', '3.2.3'
 gem 'nasreddin', path: '../../'
 gem 'jruby-openssl'
 
-gem 'torquebox', '2.0.2'
-gem 'torquebox-rake-support', '2.0.2'
+gem 'torquebox', '2.0.3'
+gem 'torquebox-rake-support', '2.0.3'

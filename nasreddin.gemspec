@@ -17,9 +17,10 @@ Gem::Specification.new do |s|
   s.test_files    = Dir['./test/**/*']
   s.require_paths = ["lib"]
 
-  s.add_runtime_dependency 'torquebox', '~> 2.0.2'
-  s.add_runtime_dependency 'torquebox-server', '~> 2.0.2'
+  s.add_runtime_dependency 'torquebox', '~> 2.0.3'
+  s.add_runtime_dependency 'torquebox-server', '~> 2.0.3'
   s.add_runtime_dependency 'rack', '~> 1.4.1'
+  s.add_runtime_dependency 'multi_json', '~> 1.3.4'
   s.add_development_dependency 'torquespec'
   s.add_development_dependency 'bacon'
 end

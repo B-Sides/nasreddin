@@ -9,4 +9,10 @@ class MyCal < Sinatra::Application
 
     erb :calendar
   end
+
+  get '/quick_cal/:first_day_of_month' do
+    @this_month = QuickMonth.starting_on(params[:first_day_of_month])
+
+    erb :calendar
+  end
 end
