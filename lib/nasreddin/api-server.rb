@@ -1,4 +1,5 @@
 require 'stringio'
+require 'uri'
 
 module Nasreddin
   class APIServer
@@ -59,6 +60,7 @@ module Nasreddin
 
     private
     def queryize(params = {})
+      params.map { |key, value| URI.encode("#{key}=#{value}") }.join('&')
     end
   end
 end

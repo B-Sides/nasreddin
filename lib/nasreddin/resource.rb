@@ -10,8 +10,8 @@ module Nasreddin
         remote_call({ method: 'GET' })
       end
 
-      def find(id)
-        remote_call({ method: 'GET', id: id })
+      def find(id, params = {})
+        remote_call({ method: 'GET', id: id, params: params })
       end
 
       def inherited(sub)
