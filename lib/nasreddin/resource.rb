@@ -10,7 +10,12 @@ module Nasreddin
         remote_call({ method: 'GET' })
       end
 
-      def find(id, params = {})
+      def find(*args)
+        if args.last.kind_of? Hash
+          params = args.pop
+        end
+        id = args.shift
+
         remote_call({ method: 'GET', id: id, params: params })
       end
 
