@@ -18,9 +18,8 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   s.add_runtime_dependency 'torquebox', '~> 2.0.3'
-  s.add_runtime_dependency 'torquebox-server', '~> 2.0.3'
   s.add_runtime_dependency 'rack', '~> 1.4.1'
   s.add_runtime_dependency 'multi_json', '~> 1.3.4'
-  s.add_development_dependency 'torquespec'
-  s.add_development_dependency 'bacon'
+  s.add_development_dependency 'torquebox-server', '~> 2.0.3'
+  s.add_development_dependency 'bacon', '~> 1.1.0'
 end
