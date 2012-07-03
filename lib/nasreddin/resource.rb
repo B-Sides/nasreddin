@@ -78,32 +78,25 @@ module Nasreddin
 
     def initialize(data)
       @data = data
+      @data.each do |key, value|
+        unless respond_to?("#{key.to_s}=")
+          self.class.send(:define_method, "#{key.to_s}=") do |other|
+            @data[key.to_s] = other
+          end
+        end
+      end
     end
 
     def method_missing(mid, *args, &block)
-      mid = mid.to_s
-      if mid =~ /=$/
-        prop = mid[0...-1]
-        if @data.keys.include?(prop)
-          @data[prop] = args.first
-        else
-          super
-        end
+      if @data.keys.include?(mid.to_s)
+        @data[mid.to_s]
       else
-        if @data.keys.include?(mid.to_s)
-          @data[mid.to_s]
-        else
-          super
-        end
+        super
       end
     end
 
     def respond_to?(mid)
-      if mid.to_s =~ /=$/
-        @data.keys.include?(mid.to_s[0...-1]) || super
-      else
-        @data.keys.include?(mid.to_s) || super
-      end
+      @data.keys.include?(mid.to_s) || super
     end
   end
 
