@@ -23,10 +23,10 @@ module Nasreddin
       #   Car.find(15)
       #   # => #<Car:0x5fafa486>
       #
-      #   Car.find(model: 'Ford')
+      #   Car.find(make: 'Ford')
       #   # => [ #<Car:0x5fafa486> ]
       #
-      #   Car.find(15, model: 'Ford')
+      #   Car.find(15, make: 'Ford')
       #   # => [ #<Car:0x5fafa486> ]
       def find(*args)
         params = args.last.kind_of?(Hash) ? args.pop : {}
@@ -35,6 +35,11 @@ module Nasreddin
         remote_call({ method: 'GET', id: id, params: params })
       end
 
+      # Allows creating a new record in one shot
+      # returns true if the record was created
+      # example usage:
+      #   Car.create make: 'Ford', model: 'Focus'
+      #   # => true or nil
       def create(properties = {})
         new(properties).save
       end
@@ -68,6 +73,14 @@ module Nasreddin
       end
     end
 
+    # Saves the current resource instance
+    # if the instance has an ID it sends a PUT request
+    # otherwise it sends a POST request
+    # example usage:
+    #   car = Car.find(15)
+    #   car.miles += 1500
+    #   car.save
+    #   # => true or nil
     def save
       if @data['id'].to_s.empty?
         self.class.remote_call({ method: 'PUT', params: @data })
@@ -76,6 +89,12 @@ module Nasreddin
       end
     end
 
+    # Initialize a new instance
+    # also defines setters for any values given
+    # example usage:
+    #   car = Car.new make: 'Ford', model: 'Mustang'
+    #   car.respond_to? :make=
+    #   # => true
     def initialize(data)
       @data = data
       @data.each do |key, value|
