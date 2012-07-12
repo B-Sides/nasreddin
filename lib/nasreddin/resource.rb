@@ -48,8 +48,6 @@ module Nasreddin
         sub.resource = @resource
       end
 
-      private
-
       def queue
         @queue ||= TorqueBox::Messaging::Queue.new("/queues/#{@resource}")
       end
