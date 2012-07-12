@@ -19,4 +19,12 @@ Then, the consumer can use the Nasreddin::Resource class to generate new classes
 requests.
 
 
-...more documentation later...
+An example implementation of Nasreddin::Resource is provided below
+
+```ruby
+require 'nasreddin/resource'
+
+class Users < Nasreddin::Resource('users') # name of endpoint for resource
+end
+
+```

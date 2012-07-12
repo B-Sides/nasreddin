@@ -2,14 +2,32 @@ require 'torquebox/messaging'
 require 'multi_json'
 
 module Nasreddin
+  # == Nasreddin Resource
+  # Provides a base class for implementing an API backed data object.
+  # A minimal implementation could be:
+  #   class Car < Nasreddin::Resource('cars')
+  #   end
   class Resource
     class<<self
       attr_accessor :resource
 
+      # Allows fetching of all entities without requiring filtering
+      # parameters.
       def all
         remote_call({ method: 'GET' })
       end
 
+      # Allows searching for a specific entity or a collection of
+      # entities that match a certain criteria.
+      # example usage:
+      #   Car.find(15)
+      #   # => #<Car:0x5fafa486>
+      #
+      #   Car.find(model: 'Ford')
+      #   # => [ #<Car:0x5fafa486> ]
+      #
+      #   Car.find(15, model: 'Ford')
+      #   # => [ #<Car:0x5fafa486> ]
       def find(*args)
         params = args.last.kind_of?(Hash) ? args.pop : {}
         id = args.shift
