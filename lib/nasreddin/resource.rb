@@ -44,6 +44,14 @@ module Nasreddin
         new(properties).save
       end
 
+      # Allows destroying a resource without finding it
+      # example usage:
+      # Car.destroy(15)
+      # # => true or nil
+      def destroy(id)
+        remote_call({ method: 'DELETE', id: id })
+      end
+
       def inherited(sub)
         sub.resource = @resource
       end
@@ -85,6 +93,15 @@ module Nasreddin
       else
         self.class.remote_call({ method: 'POST', id: @data['id'], params: @data })
       end
+    end
+
+    # Destroys the current resource instance
+    # example usage:
+    # car = Car.find(15)
+    # car.destroy
+    # # => true or nil
+    def destroy
+      self.class.remote_call({ method: 'DELETE', id: @data['id'] })
     end
 
     # Initialize a new instance
