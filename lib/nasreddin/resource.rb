@@ -2,6 +2,9 @@ require 'torquebox/messaging'
 require 'multi_json'
 
 module Nasreddin
+
+  class SaveError < Exception ; end
+
   # == Nasreddin Resource
   # Provides a base class for implementing an API backed data object.
   # A minimal implementation could be:
@@ -79,15 +82,24 @@ module Nasreddin
       end
     end
 
+    # Checks if the current instance has
+    # already been deleted
+    def deleted?
+      @deleted
+    end
+
     # Saves the current resource instance
     # if the instance has an ID it sends a PUT request
     # otherwise it sends a POST request
+    # will raise an error if the object has been deleted
     # example usage:
     #   car = Car.find(15)
     #   car.miles += 1500
     #   car.save
     #   # => true or nil
     def save
+      raise SaveError.new("Cannot save a deleted resource") if deleted?
+
       if @data['id'].to_s.empty?
         self.class.remote_call({ method: 'PUT', params: @data })
       else
@@ -101,6 +113,7 @@ module Nasreddin
     # car.destroy
     # # => true or nil
     def destroy
+      @deleted = true
       self.class.remote_call({ method: 'DELETE', id: @data['id'] })
     end
 
@@ -110,7 +123,8 @@ module Nasreddin
     #   car = Car.new make: 'Ford', model: 'Mustang'
     #   car.respond_to? :make=
     #   # => true
-    def initialize(data)
+    def initialize(data={})
+      @deleted = false
       @data = data
       @data.each do |key, value|
         unless respond_to?("#{key.to_s}=")
@@ -122,6 +136,7 @@ module Nasreddin
     end
 
     def method_missing(mid, *args, &block)
+      puts "called method: #{mid}, with #{args}"
       if @data.keys.include?(mid.to_s)
         @data[mid.to_s]
       else
