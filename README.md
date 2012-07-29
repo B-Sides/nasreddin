@@ -24,7 +24,7 @@ An example implementation of Nasreddin::Resource is provided below
 ```ruby
 require 'nasreddin/resource'
 
-class Users < Nasreddin::Resource('users') # name of endpoint for resource
+class User < Nasreddin::Resource('users') # name of endpoint for resource
 end
 
 ```
