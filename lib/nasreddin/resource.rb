@@ -101,9 +101,9 @@ module Nasreddin
       raise SaveError.new("Cannot save a deleted resource") if deleted?
 
       if @data['id'].to_s.empty?
-        self.class.remote_call({ method: 'PUT', params: @data })
+        self.class.remote_call({ method: 'POST', params: @data })
       else
-        self.class.remote_call({ method: 'POST', id: @data['id'], params: @data })
+        self.class.remote_call({ method: 'PUT', id: @data['id'], params: @data })
       end
     end
 
