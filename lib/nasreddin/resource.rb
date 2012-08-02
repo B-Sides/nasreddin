@@ -67,7 +67,7 @@ module Nasreddin
         status, _, data = *(queue.publish_and_receive(params, persistant: false))
         if status == 200
           if params[:method] == 'GET'
-            resp = MultiJson.load(data)
+            resp = MultiJson.load(data)[@resource]
             if resp.kind_of? Array
               resp.map { |r| new(r) }
             else
