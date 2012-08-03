@@ -63,22 +63,33 @@ module Nasreddin
         @queue ||= TorqueBox::Messaging::Queue.new("/queues/#{@resource}")
       end
 
+      def load_data(data)
+        resp = MultiJson.load(data)
+        resp = resp[@resource] if resp.keys.include?(@resource)
+        if resp.kind_of? Array
+          resp.map { |r| new(r) }
+        else
+          new(resp)
+        end
+      end
+
       def remote_call(params)
         status, _, data = *(queue.publish_and_receive(params, persistant: false))
         if status == 200
-          if params[:method] == 'GET'
-            resp = MultiJson.load(data)
-            if resp.kind_of? Array
-              resp.map { |r| new(r) }
-            else
-              new(resp)
-            end
-          else
-            true
-          end
+          load_data(data)
         else
           nil
         end
+      end
+    end
+
+    def remote_call(params)
+      status, _, data = *(queue.publish_and_receive(params, persistant: false))
+      if status == 200
+        @data = MultiJson.load(data)
+        true
+      else
+        false
       end
     end
 
@@ -96,14 +107,14 @@ module Nasreddin
     #   car = Car.find(15)
     #   car.miles += 1500
     #   car.save
-    #   # => true or nil
+    #   # => true or false
     def save
       raise SaveError.new("Cannot save a deleted resource") if deleted?
 
       if @data['id'].to_s.empty?
-        self.class.remote_call({ method: 'POST', params: @data })
+        remote_call({ method: 'POST', params: @data })
       else
-        self.class.remote_call({ method: 'PUT', id: @data['id'], params: @data })
+        remote_call({ method: 'PUT', id: @data['id'], params: @data })
       end
     end
 
@@ -111,10 +122,10 @@ module Nasreddin
     # example usage:
     # car = Car.find(15)
     # car.destroy
-    # # => true or nil
+    # # => true or false
     def destroy
       @deleted = true
-      self.class.remote_call({ method: 'DELETE', id: @data['id'] })
+      remote_call({ method: 'DELETE', id: @data['id'] })
     end
 
     # Initialize a new instance
@@ -136,7 +147,6 @@ module Nasreddin
     end
 
     def method_missing(mid, *args, &block)
-      puts "called method: #{mid}, with #{args}"
       if @data.keys.include?(mid.to_s)
         @data[mid.to_s]
       else
@@ -144,7 +154,7 @@ module Nasreddin
       end
     end
 
-    def respond_to?(mid)
+    def respond_to?(mid, include_private=false)
       @data.keys.include?(mid.to_s) || super
     end
   end
