@@ -84,7 +84,7 @@ module Nasreddin
     end
 
     def remote_call(params)
-      status, _, data = *(queue.publish_and_receive(params, persistant: false))
+      status, _, data = *(self.class.queue.publish_and_receive(params, persistant: false))
       if status == 200
         @data = MultiJson.load(data)
         true
