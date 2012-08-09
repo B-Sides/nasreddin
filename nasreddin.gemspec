@@ -14,6 +14,7 @@ Gem::Specification.new do |s|
   s.rubyforge_project = ''
 
   s.files         = Dir['./{lib,test}/**/*']
+  s.files        += ['README.md']
   s.test_files    = Dir['./test/**/*']
   s.require_paths = ["lib"]
 
