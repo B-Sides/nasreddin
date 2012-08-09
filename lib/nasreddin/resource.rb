@@ -50,9 +50,9 @@ module Nasreddin
       # Allows destroying a resource without finding it
       # example usage:
       # Car.destroy(15)
-      # # => true or nil
+      # # => true or false
       def destroy(id)
-        remote_call({ method: 'DELETE', id: id })
+        remote_call({ method: 'DELETE', id: id, params: {} }).nil?
       end
 
       def inherited(sub)
@@ -125,7 +125,7 @@ module Nasreddin
     # # => true or false
     def destroy
       @deleted = true
-      remote_call({ method: 'DELETE', id: @data['id'] })
+      remote_call({ method: 'DELETE', id: @data['id'], params: {} })
     end
 
     # Initialize a new instance
