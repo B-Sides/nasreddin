@@ -83,6 +83,12 @@ module Nasreddin
       end
     end
 
+    # Custom to_json implementation
+    # passes through options
+    def to_json(options={})
+      @data.to_json(options)
+    end
+
     def remote_call(params)
       status, _, data = *(self.class.queue.publish_and_receive(params, persistant: false))
       if status == 200
