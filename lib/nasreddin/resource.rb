@@ -17,7 +17,7 @@ module Nasreddin
       # Allows fetching of all entities without requiring filtering
       # parameters.
       def all
-        remote_call({ method: 'GET' })
+        remote_call({ method: 'GET', params: {} })
       end
 
       # Allows searching for a specific entity or a collection of
@@ -52,7 +52,7 @@ module Nasreddin
       # Car.destroy(15)
       # # => true or false
       def destroy(id)
-        remote_call({ method: 'DELETE', id: id, params: {} }).nil?
+        !remote_call({ method: 'DELETE', id: id, params: {} }).nil?
       end
 
       def inherited(sub)
