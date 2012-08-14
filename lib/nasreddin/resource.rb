@@ -76,7 +76,7 @@ module Nasreddin
       def remote_call(params)
         status, _, data = *(queue.publish_and_receive(params, persistant: false))
         if status == 200
-          load_data(data)
+          MultiJson.load(data)
         else
           nil
         end
@@ -84,9 +84,8 @@ module Nasreddin
     end
 
     def remote_call(params)
-      status, _, data = *(self.class.queue.publish_and_receive(params, persistant: false))
-      if status == 200
-        @data = MultiJson.load(data)
+      if values = self.class.remote_call(params)
+        @data = values
         true
       else
         false
@@ -124,8 +123,9 @@ module Nasreddin
     # car.destroy
     # # => true or false
     def destroy
-      @deleted = true
-      remote_call({ method: 'DELETE', id: @data['id'] })
+      if !@deleted
+        @deleted = remote_call({ method: 'DELETE', id: @data['id'] })
+      end
     end
 
     # Initialize a new instance
