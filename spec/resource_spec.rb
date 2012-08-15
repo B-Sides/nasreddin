@@ -2,14 +2,13 @@ require 'spec_helper'
 
 describe Nasreddin::Resource do
 
-   let(:foo) { stub(:foo) }
+   let(:foo) { stub_everything() }
 
 
    def stub_remote_call_and_ensure(&block)
-      Foo.expects(:remote_call).with do |*args|
-          a=args.pop
-          a.should be_an_instance_of(Hash)
-          block.call(a)
+      Foo.expects(:remote_call).with do |params,return_objects|
+          params.should be_an_instance_of(Hash)
+          block.call(params)
       end.returns(foo) 
    end
 
@@ -30,31 +29,31 @@ describe Nasreddin::Resource do
        it "should be able to search an object by params" do 
          stub_remote_call_and_ensure do |arg|
             arg[:method].should == 'GET'
-            arg[:params].should == { 'foo' => 'bar' }
+            arg[:params].should == { 'bar' => 'bar' }
             arg[:id].should be_nil
          end
 
-         Foo.find('foo' => 'bar').should eq(foo)
+         Foo.find('bar' => 'bar').should eq(foo)
        end
 
        it "should be able to create an object" do
            stub_remote_call_and_ensure do |arg|
                arg[:method].should == 'POST'
-               arg[:params].should == { 'foo' => 'bar' }
+               arg[:params].should == { 'bar' => 'bar' }
                arg[:id].should be_nil
            end
 
-           Foo.create( 'foo' => 'bar' )
+           Foo.create( 'bar' => 'bar' )
        end
 
        it "should be able to update an object" do
            stub_remote_call_and_ensure do |arg|
                arg[:method].should == 'PUT'
-               arg[:params].should == { 'foo' => 'qux', 'id' => 1 }
+               arg[:params].should == { 'bar' => 'qux', 'id' => 1 }
                arg[:id].should == 1
            end
-           foo = Foo.new 'id' => 1, 'foo' => 'bar'
-           foo.foo = 'qux'
+           foo = Foo.new 'id' => 1, 'bar' => 'bar'
+           foo.bar = 'qux'
            foo.save
 
        end
@@ -62,17 +61,17 @@ describe Nasreddin::Resource do
        it "should be able to delete an object" do
            stub_remote_call_and_ensure do |arg|
                arg[:method].should == 'DELETE'
-               arg[:params].should be_nil
+               arg[:params].should == {}
                arg[:id].should == 1
            end
-           foo = Foo.new 'id' => 1, 'foo' => 'bar'
+           foo = Foo.new 'id' => 1, 'bar' => 'bar'
            foo.destroy
            foo.deleted?.should be_true
        end
    end
 
    describe "#remote_call" do
-     let(:foo_params){ {'id' => 1, 'foo' => 'bar'} }
+     let(:foo_params){ {'id' => 1, 'bar' => 'bar'} }
      let(:json_foo){ MultiJson.dump(foo_params) }
 
      it "is able to return an object" do
@@ -80,15 +79,16 @@ describe Nasreddin::Resource do
         queue.expects(:publish_and_receive).returns( [200,nil,json_foo] )
         Foo.stubs(:queue).returns(queue)
         obj = Foo.remote_call( :method => 'GET' )
-        obj['foo'].should == 'bar'
-        obj['id'].should == 1
+        obj.should be_an_instance_of(Foo)
+        obj.bar.should == 'bar'
+        obj.id.should == 1
      end
    end
 
 
    describe ".remote_call" do
-    let(:foo_params){ {'id' => 1, 'foo' => 'bar'} }
-    let(:updated_foo_params){ {'id' => 1, 'foo' => 'geez'} }
+    let(:foo_params){ {'id' => 1, 'bar' => 'bar'} }
+    let(:updated_foo_params){ {'id' => 1, 'bar' => 'geez'} }
     let(:foo){ Foo.new(foo_params) }
     let(:updated_foo_params_json) { MultiJson.dump(updated_foo_params) }
 
@@ -97,7 +97,7 @@ describe Nasreddin::Resource do
         queue.expects(:publish_and_receive).returns( [200,nil,updated_foo_params_json] )
         Foo.stubs(:queue).returns(queue)
         foo.remote_call(updated_foo_params)
-        foo.foo.should == 'geez'
+        foo.bar.should == 'geez'
     end
    end
 end

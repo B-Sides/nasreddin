@@ -17,7 +17,7 @@ module Nasreddin
       # Allows fetching of all entities without requiring filtering
       # parameters.
       def all
-        remote_call({ method: 'GET' })
+        remote_call({ method: 'GET', params: {} })
       end
 
       # Allows searching for a specific entity or a collection of
@@ -50,9 +50,9 @@ module Nasreddin
       # Allows destroying a resource without finding it
       # example usage:
       # Car.destroy(15)
-      # # => true or nil
+      # # => true or false
       def destroy(id)
-        remote_call({ method: 'DELETE', id: id })
+        !remote_call({ method: 'DELETE', id: id, params: {} }).nil?
       end
 
       def inherited(sub)
@@ -63,33 +63,40 @@ module Nasreddin
         @queue ||= TorqueBox::Messaging::Queue.new("/queues/#{@resource}")
       end
 
-      def load_data(data)
+      def load_data(data,as_objects=true)
         resp = MultiJson.load(data)
         resp = resp[@resource] if resp.keys.include?(@resource)
         if resp.kind_of? Array
-          resp.map { |r| new(r) }
+          as_objects ? resp.map { |r| new(r) } : resp
         else
-          new(resp)
+          as_objects ? new(resp) : resp
         end
       end
 
-      def remote_call(params)
+      def remote_call(params,as_objects=true)
         status, _, data = *(queue.publish_and_receive(params, persistant: false))
         if status == 200
-          MultiJson.load(data)
+          load_data(data,as_objects)
         else
           nil
         end
       end
     end
 
+
     def remote_call(params)
-      if values = self.class.remote_call(params)
-        @data = values
+      if new_obj = self.class.remote_call(params,false)
+        @data = new_obj
         true
       else
         false
       end
+    end
+
+    # Custom to_json implementation
+    # passes through options
+    def to_json(options={})
+      @data.to_json(options)
     end
 
     # Checks if the current instance has
@@ -124,7 +131,7 @@ module Nasreddin
     # # => true or false
     def destroy
       if !@deleted
-        @deleted = remote_call({ method: 'DELETE', id: @data['id'] })
+        @deleted = remote_call({ method: 'DELETE', id: @data['id'], params: {} })
       end
     end
 
