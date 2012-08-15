@@ -63,23 +63,33 @@ module Nasreddin
         @queue ||= TorqueBox::Messaging::Queue.new("/queues/#{@resource}")
       end
 
-      def load_data(data)
+      def load_data(data,as_objects=true)
         resp = MultiJson.load(data)
         resp = resp[@resource] if resp.keys.include?(@resource)
         if resp.kind_of? Array
-          resp.map { |r| new(r) }
+          as_objects ? resp.map { |r| new(r) } : resp
         else
-          new(resp)
+          as_objects ? new(resp) : resp
         end
       end
 
-      def remote_call(params)
+      def remote_call(params,as_objects=true)
         status, _, data = *(queue.publish_and_receive(params, persistant: false))
         if status == 200
-          load_data(data)
+          load_data(data,as_objects)
         else
           nil
         end
+      end
+    end
+
+
+    def remote_call(params)
+      if new_obj = self.class.remote_call(params,false)
+        @data = new_obj
+        true
+      else
+        false
       end
     end
 
@@ -87,16 +97,6 @@ module Nasreddin
     # passes through options
     def to_json(options={})
       @data.to_json(options)
-    end
-
-    def remote_call(params)
-      status, _, data = *(self.class.queue.publish_and_receive(params, persistant: false))
-      if status == 200
-        @data = MultiJson.load(data)
-        true
-      else
-        false
-      end
     end
 
     # Checks if the current instance has
@@ -130,8 +130,9 @@ module Nasreddin
     # car.destroy
     # # => true or false
     def destroy
-      @deleted = true
-      remote_call({ method: 'DELETE', id: @data['id'], params: {} })
+      if !@deleted
+        @deleted = remote_call({ method: 'DELETE', id: @data['id'], params: {} })
+      end
     end
 
     # Initialize a new instance
