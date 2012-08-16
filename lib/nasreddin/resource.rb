@@ -14,6 +14,13 @@ module Nasreddin
     class<<self
       attr_accessor :resource
 
+      def subclasses; (@subclasses ||= []); end
+
+      def inherited(sub)
+        subclasses << sub
+        sub.resource = @resource
+      end
+
       # Allows fetching of all entities without requiring filtering
       # parameters.
       def all
@@ -53,10 +60,6 @@ module Nasreddin
       # # => true or false
       def destroy(id)
         !remote_call({ method: 'DELETE', id: id, params: {} }).nil?
-      end
-
-      def inherited(sub)
-        sub.resource = @resource
       end
 
       def queue
@@ -166,8 +169,11 @@ module Nasreddin
   end
 
   def self.Resource(name)
-    ret = Class.new(Resource)
-    ret.resource = name
-    ret
+    klass = Resource.subclasses.find { |k| k.resource == name }
+    unless klass
+      klass = Class.new(Resource)
+      klass.resource = name
+    end
+    klass
   end
 end
