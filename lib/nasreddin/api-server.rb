@@ -34,7 +34,8 @@ module Nasreddin
                     env.merge!(msg)
                     status, headers, body = @app.call(env)
 
-                    resp = body.join
+                    resp = ''
+                    body.each { |d| resp += d.to_s }
                     body.close
 
                   rescue Exception => err
