@@ -14,6 +14,13 @@ module Nasreddin
     class<<self
       attr_accessor :resource
 
+      def subclasses; (@subclasses ||= []); end
+
+      def inherited(sub)
+        subclasses << sub
+        sub.resource = @resource
+      end
+
       # Allows fetching of all entities without requiring filtering
       # parameters.
       def all
@@ -55,41 +62,28 @@ module Nasreddin
         !remote_call({ method: 'DELETE', id: id, params: {} }).nil?
       end
 
-      def inherited(sub)
-        sub.resource = @resource
-      end
 
       def queue
         @queue ||= TorqueBox::Messaging::Queue.new("/queues/#{@resource}")
       end
 
-      def load_data(data,as_objects=true)
+      def load_data(data)
         resp = MultiJson.load(data)
         resp = resp[@resource] if resp.keys.include?(@resource)
         if resp.kind_of? Array
-          as_objects ? resp.map { |r| new(r) } : resp
+          resp.map { |r| new(r) }
         else
-          as_objects ? new(resp) : resp
+          new(resp)
         end
       end
 
-      def remote_call(params,as_objects=true)
+      def remote_call(params)
         status, _, data = *(queue.publish_and_receive(params, persistant: false))
         if status == 200
-          load_data(data,as_objects)
+          MultiJson.load(data)
         else
           nil
         end
-      end
-    end
-
-
-    def remote_call(params)
-      if new_obj = self.class.remote_call(params,false)
-        @data = new_obj
-        true
-      else
-        false
       end
     end
 
@@ -97,6 +91,15 @@ module Nasreddin
     # passes through options
     def to_json(options={})
       @data.to_json(options)
+    end
+
+    def remote_call(params)
+      if values = self.class.remote_call(params)
+        @data = values
+        true
+      else
+        false
+      end
     end
 
     # Checks if the current instance has
@@ -131,7 +134,7 @@ module Nasreddin
     # # => true or false
     def destroy
       if !@deleted
-        @deleted = remote_call({ method: 'DELETE', id: @data['id'], params: {} })
+        @deleted = remote_call({ method: 'DELETE', id: @data['id'] })
       end
     end
 
@@ -167,8 +170,11 @@ module Nasreddin
   end
 
   def self.Resource(name)
-    ret = Class.new(Resource)
-    ret.resource = name
-    ret
+    klass = Resource.subclasses.find { |k| k.resource == name }
+    unless klass
+      klass = Class.new(Resource)
+      klass.resource = name
+    end
+    klass
   end
 end
