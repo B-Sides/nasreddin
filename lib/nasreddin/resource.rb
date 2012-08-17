@@ -67,20 +67,20 @@ module Nasreddin
         @queue ||= TorqueBox::Messaging::Queue.new("/queues/#{@resource}")
       end
 
-      def load_data(data)
+      def load_data(data, as_objects = true)
         resp = MultiJson.load(data)
         resp = resp[@resource] if resp.keys.include?(@resource)
         if resp.kind_of? Array
-          resp.map { |r| new(r) }
+          as_objects ? resp.map { |r| new(r) } : resp
         else
-          new(resp)
+          as_objects ? new(resp) : resp
         end
       end
 
-      def remote_call(params)
+      def remote_call(params, as_objects=true)
         status, _, data = *(queue.publish_and_receive(params, persistant: false))
         if status == 200
-          MultiJson.load(data)
+          load_data(data,as_objects)
         else
           nil
         end
@@ -94,7 +94,7 @@ module Nasreddin
     end
 
     def remote_call(params)
-      if values = self.class.remote_call(params)
+      if values = self.class.remote_call(params,false)
         @data = values
         true
       else
@@ -134,7 +134,7 @@ module Nasreddin
     # # => true or false
     def destroy
       if !@deleted
-        @deleted = remote_call({ method: 'DELETE', id: @data['id'] })
+        @deleted = remote_call({ method: 'DELETE', id: @data['id'], params: {} })
       end
     end
 
