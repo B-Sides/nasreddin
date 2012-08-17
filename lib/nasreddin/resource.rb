@@ -24,7 +24,8 @@ module Nasreddin
       # Allows fetching of all entities without requiring filtering
       # parameters.
       def all
-        remote_call({ method: 'GET', params: {} })
+        _, results = remote_call({ method: 'GET', params: {} })
+        results
       end
 
       # Allows searching for a specific entity or a collection of
@@ -42,14 +43,15 @@ module Nasreddin
         params = args.last.kind_of?(Hash) ? args.pop : {}
         id = args.shift
 
-        remote_call({ method: 'GET', id: id, params: params })
+        _, results = remote_call({ method: 'GET', id: id, params: params })
+        results
       end
 
       # Allows creating a new record in one shot
       # returns true if the record was created
       # example usage:
       #   Car.create make: 'Ford', model: 'Focus'
-      #   # => true or nil
+      #   # => true or false
       def create(properties = {})
         new(properties).save
       end
@@ -59,7 +61,8 @@ module Nasreddin
       # Car.destroy(15)
       # # => true or false
       def destroy(id)
-        !remote_call({ method: 'DELETE', id: id, params: {} }).nil?
+        _, result = remote_call({ method: 'DELETE', id: id, params: {} })
+        !result.nil?
       end
 
 
@@ -79,11 +82,12 @@ module Nasreddin
 
       def remote_call(params, as_objects=true)
         status, _, data = *(queue.publish_and_receive(params, persistant: false))
-        if status == 200
-          load_data(data,as_objects)
-        else
-          nil
-        end
+        [ status, load_data(data, as_objects) ]
+        # if (200..300) === status
+        #   load_data(data,as_objects)
+        # else
+        #   nil
+        # end
       end
     end
 
@@ -93,13 +97,19 @@ module Nasreddin
       @data.to_json(options)
     end
 
+    # Calls the remote api
+    # Loads any data provided into the instance
+    # returns true if the status was in the 200 range
     def remote_call(params)
-      if values = self.class.remote_call(params,false)
-        @data = values
-        true
-      else
-        false
-      end
+      status, values = self.class.remote_call(params, false)
+      @data = values if values && !values.empty?
+      (200...300) === status
+      # if values = self.class.remote_call(params,false)
+      #   @data = values
+      #   true
+      # else
+      #   false
+      # end
     end
 
     # Checks if the current instance has
