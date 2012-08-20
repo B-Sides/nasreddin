@@ -6,16 +6,13 @@ describe Nasreddin::Resource do
 
 
    def stub_remote_call_and_ensure(&block)
-      Foo.expects(:remote_call).with do |params,return_objects|
+      Foo.remote.expects(:call).with do |params,as_objects|
           params.should be_an_instance_of(Hash)
           block.call(params)
-      end.returns(foo) 
+      end.returns(foo)
    end
 
    describe "as consumer" do
-       before do
-         TorqueBox::Messaging::Queue.stubs(:new).returns(stub_everything())
-       end
 
        it "should be able to search an object by :id" do
          stub_remote_call_and_ensure do |arg|
@@ -70,34 +67,4 @@ describe Nasreddin::Resource do
        end
    end
 
-   describe "#remote_call" do
-     let(:foo_params){ {'id' => 1, 'bar' => 'bar'} }
-     let(:json_foo){ MultiJson.dump(foo_params) }
-
-     it "is able to return an object" do
-        queue = mock()
-        queue.expects(:publish_and_receive).returns( [200,nil,json_foo] )
-        Foo.stubs(:queue).returns(queue)
-        obj = Foo.remote_call( :method => 'GET' )
-        obj.should be_an_instance_of(Foo)
-        obj.bar.should == 'bar'
-        obj.id.should == 1
-     end
-   end
-
-
-   describe ".remote_call" do
-    let(:foo_params){ {'id' => 1, 'bar' => 'bar'} }
-    let(:updated_foo_params){ {'id' => 1, 'bar' => 'geez'} }
-    let(:foo){ Foo.new(foo_params) }
-    let(:updated_foo_params_json) { MultiJson.dump(updated_foo_params) }
-
-    it "is able to update the object" do
-        queue = mock()
-        queue.expects(:publish_and_receive).returns( [200,nil,updated_foo_params_json] )
-        Foo.stubs(:queue).returns(queue)
-        foo.remote_call(updated_foo_params)
-        foo.bar.should == 'geez'
-    end
-   end
 end
