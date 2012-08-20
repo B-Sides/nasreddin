@@ -24,8 +24,7 @@ module Nasreddin
       # Allows fetching of all entities without requiring filtering
       # parameters.
       def all
-        _, results = remote_call({ method: 'GET', params: {} })
-        results
+        call_api({ method: 'GET' })
       end
 
       # Allows searching for a specific entity or a collection of
@@ -43,8 +42,7 @@ module Nasreddin
         params = args.last.kind_of?(Hash) ? args.pop : {}
         id = args.shift
 
-        _, results = remote_call({ method: 'GET', id: id, params: params })
-        results
+        call_api({ method: 'GET', id: id, params: params })
       end
 
       # Allows creating a new record in one shot
@@ -61,16 +59,14 @@ module Nasreddin
       # Car.destroy(15)
       # # => true or false
       def destroy(id)
-        _, result = remote_call({ method: 'DELETE', id: id, params: {} })
-        !result.nil?
+        !call_api({ method: 'DELETE', id: id }).nil?
       end
-
 
       def queue
         @queue ||= TorqueBox::Messaging::Queue.new("/queues/#{@resource}")
       end
 
-      def load_data(data, as_objects = true)
+      def load_data(data, as_objects)
         resp = MultiJson.load(data)
         resp = resp[@resource] if resp.keys.include?(@resource)
         if resp.kind_of? Array
@@ -80,14 +76,19 @@ module Nasreddin
         end
       end
 
-      def remote_call(params, as_objects=true)
+      def call_api(params)
+        status, data = remote_call(params)
+        case status
+        when 200...300
+          data
+        else
+          nil
+        end
+      end
+
+      def remote_call(params, as_objects = true)
         status, _, data = *(queue.publish_and_receive(params, persistant: false))
         [ status, load_data(data, as_objects) ]
-        # if (200..300) === status
-        #   load_data(data,as_objects)
-        # else
-        #   nil
-        # end
       end
     end
 
@@ -100,16 +101,10 @@ module Nasreddin
     # Calls the remote api
     # Loads any data provided into the instance
     # returns true if the status was in the 200 range
-    def remote_call(params)
+    def call_api(params)
       status, values = self.class.remote_call(params, false)
       @data = values if values && !values.empty?
       (200...300) === status
-      # if values = self.class.remote_call(params,false)
-      #   @data = values
-      #   true
-      # else
-      #   false
-      # end
     end
 
     # Checks if the current instance has
@@ -131,9 +126,9 @@ module Nasreddin
       raise SaveError.new("Cannot save a deleted resource") if deleted?
 
       if @data['id'].to_s.empty?
-        remote_call({ method: 'POST', params: @data })
+        call_api({ method: 'POST', params: @data })
       else
-        remote_call({ method: 'PUT', id: @data['id'], params: @data })
+        call_api({ method: 'PUT', id: @data['id'], params: @data })
       end
     end
 
@@ -144,7 +139,7 @@ module Nasreddin
     # # => true or false
     def destroy
       if !@deleted
-        @deleted = remote_call({ method: 'DELETE', id: @data['id'], params: {} })
+        @deleted = call_api({ method: 'DELETE', id: @data['id'] })
       end
     end
 

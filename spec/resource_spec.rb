@@ -1,12 +1,10 @@
 require 'spec_helper'
 
 describe Nasreddin::Resource do
-
   let(:foo) { stub_everything() }
 
-
   def stub_remote_call_and_ensure(&block)
-    Foo.expects(:remote_call).with do |params,return_objects|
+    Foo.expects(:remote_call).with do |params|
         params.should be_an_instance_of(Hash)
         block.call(params)
     end.returns([200, foo])
@@ -60,7 +58,6 @@ describe Nasreddin::Resource do
     it "should be able to delete an object" do
       stub_remote_call_and_ensure do |arg|
         arg[:method].should == 'DELETE'
-        arg[:params].should == {}
         arg[:id].should == 1
       end
       foo = Foo.new 'id' => 1, 'bar' => 'bar'
@@ -70,41 +67,42 @@ describe Nasreddin::Resource do
   end
 
   describe "#remote_call" do
+    it "should publish on the queue" do
+      queue = mock('queue')
+      params = { method: 'GET' }
+      queue.expects(:publish_and_receive).returns([200, nil, MultiJson.dump({'bar' => 'baz'})])
+      Foo.stubs(:queue).returns(queue)
+      Foo.remote_call(params)
+    end
+  end
+
+  describe "#call_api" do
     let(:foo_params) { {'id' => 1, 'bar' => 'bar'} }
     let(:json_foo) { MultiJson.dump(foo_params) }
 
     it "is able to return an object" do
-      queue = mock()
-      queue.expects(:publish_and_receive).returns( [200,nil,json_foo] )
+      queue = mock('queue')
       Foo.stubs(:queue).returns(queue)
-      _, obj = Foo.remote_call( :method => 'GET' )
+      queue.expects(:publish_and_receive).returns([200, nil, json_foo])
+      obj = Foo.call_api( :method => 'GET' )
       obj.should be_an_instance_of(Foo)
       obj.bar.should == 'bar'
       obj.id.should == 1
     end
-
-    it "should load data on any response" do
-      queue = mock()
-      Foo.stubs(:queue).returns(queue)
-      queue.expects(:publish_and_receive).returns([204, nil, {}])
-
-      Foo.expects(:load_data)
-      Foo.remote_call({})
-    end
   end
 
-
-  describe ".remote_call" do
+  describe ".call_api" do
     let(:foo_params){ {'id' => 1, 'bar' => 'bar'} }
     let(:updated_foo_params){ {'id' => 1, 'bar' => 'geez'} }
     let(:foo){ Foo.new(foo_params) }
     let(:updated_foo_params_json) { MultiJson.dump(updated_foo_params) }
 
     it "is able to update the object" do
-      queue = mock()
-      queue.expects(:publish_and_receive).returns( [200,nil,updated_foo_params_json] )
+      queue = mock('queue')
       Foo.stubs(:queue).returns(queue)
-      foo.remote_call(updated_foo_params)
+      queue.expects(:publish_and_receive).returns([200, nil, updated_foo_params_json])
+
+      foo.call_api({ method: 'PUT', params: updated_foo_params })
       foo.bar.should == 'geez'
     end
   end
