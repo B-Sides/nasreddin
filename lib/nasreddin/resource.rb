@@ -25,7 +25,7 @@ module Nasreddin
       # Allows fetching of all entities without requiring filtering
       # parameters.
       def all
-        remote.call({ method: 'GET', params: {} })
+        remote.call({ method: 'GET', params: {} }, true)
       end
 
       # Allows searching for a specific entity or a collection of
@@ -43,7 +43,7 @@ module Nasreddin
         params = args.last.kind_of?(Hash) ? args.pop : {}
         id = args.shift
         
-        remote.call({ method: 'GET', id: id, params: params }, @resource)
+        remote.call({ method: 'GET', id: id, params: params }, true)
       end
 
       # Allows creating a new record in one shot
@@ -60,7 +60,7 @@ module Nasreddin
       # Car.destroy(15)
       # # => true or false
       def destroy(id)
-        remote.call({ method: 'DELETE', id: id, params: {} }, @resource).nil?
+        remote.call({ method: 'DELETE', id: id, params: {} }).nil?
       end
     end
 
