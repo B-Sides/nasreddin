@@ -1,5 +1,5 @@
-.torquespec
-pkg
-doc
-.yardoc
 Gemfile.lock
+doc
+pkg
+.torquespec
+.yardoc
