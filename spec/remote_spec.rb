@@ -1,12 +1,11 @@
 require 'spec_helper'
 
 describe Nasreddin::RemoteTorqueboxAdapter do
+  before do
+    TorqueBox::Messaging::Queue.stubs(:new).returns(stub_everything())
+  end
 
-   before do
-     TorqueBox::Messaging::Queue.stubs(:new).returns(stub_everything())
-   end
-
-   describe "#remote_call" do
+   describe ".call" do
      let(:foo_params){ {'id' => 1, 'bar' => 'bar'} }
      let(:json_foo){ MultiJson.dump(foo_params) }
 

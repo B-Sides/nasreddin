@@ -12,20 +12,28 @@ module Nasreddin
   #   end
   class Resource
     class<<self
-      attr_accessor :resource, :remote
+      attr_accessor :resource
 
       def subclasses; (@subclasses ||= []); end
 
       def inherited(sub)
         subclasses << sub
         sub.resource = @resource
-        sub.remote = @remote
+      end
+
+      def remote
+        @remote ||= Nasreddin::RemoteTorqueboxAdapter.new(@resource, self)
+      end
+
+      def remote_call(params = {}, as_objects=true)
+        success, values = remote.call(params, as_objects)
+        values
       end
 
       # Allows fetching of all entities without requiring filtering
       # parameters.
       def all
-        remote.call({ method: 'GET', params: {} }, true)
+        remote_call({ method: 'GET' })
       end
 
       # Allows searching for a specific entity or a collection of
@@ -42,15 +50,15 @@ module Nasreddin
       def find(*args)
         params = args.last.kind_of?(Hash) ? args.pop : {}
         id = args.shift
-        
-        remote.call({ method: 'GET', id: id, params: params }, true)
+
+        remote_call({ method: 'GET', id: id, params: params })
       end
 
       # Allows creating a new record in one shot
       # returns true if the record was created
       # example usage:
       #   Car.create make: 'Ford', model: 'Focus'
-      #   # => true or nil
+      #   # => true or false
       def create(properties = {})
         new(properties).save
       end
@@ -60,12 +68,12 @@ module Nasreddin
       # Car.destroy(15)
       # # => true or false
       def destroy(id)
-        remote.call({ method: 'DELETE', id: id, params: {} }).nil?
+        remote_call({ method: 'DELETE', id: id }, false).empty?
       end
     end
 
     def remote
-        self.class.send(:remote)
+      self.class.send(:remote)
     end
 
     # Custom to_json implementation
@@ -73,7 +81,6 @@ module Nasreddin
     def to_json(options={})
       @data.to_json(options)
     end
-
 
     # Checks if the current instance has
     # already been deleted
@@ -94,10 +101,16 @@ module Nasreddin
       raise SaveError.new("Cannot save a deleted resource") if deleted?
 
       if @data['id'].to_s.empty?
-       @data = remote.call({ method: 'POST', params: @data })
+       remote_call({ method: 'POST', params: @data })
       else
-       @data = remote.call({ method: 'PUT', id: @data['id'], params: @data })
+       remote_call({ method: 'PUT', id: @data['id'], params: @data })
       end
+    end
+
+    def remote_call(params)
+      success, values = remote.call(params, false)
+      @data = values if values && !values.empty?
+      success
     end
 
     # Destroys the current resource instance
@@ -106,8 +119,8 @@ module Nasreddin
     # car.destroy
     # # => true or false
     def destroy
-      if !@deleted
-        @deleted = !! remote.call({ method: 'DELETE', id: @data['id'], params: {} })
+      if !deleted?
+        @deleted = remote_call({ method: 'DELETE', id: @data['id'] })
       end
     end
 
@@ -146,8 +159,7 @@ module Nasreddin
     klass = Resource.subclasses.find { |k| k.resource == name }
     unless klass
       klass = Class.new(Resource)
-      klass.resource = name 
-      klass.remote = Nasreddin::RemoteTorqueboxAdapter.new(name)
+      klass.resource = name
     end
     klass
   end

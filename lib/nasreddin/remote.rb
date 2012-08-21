@@ -7,33 +7,30 @@ module Nasreddin
     def load_data(data,resource, as_objects = true)
       resp = MultiJson.load(data)
       resp = resp[@resource] if resp.keys.include?(@resource)
-      klass= Kernel.const_get(@resource.capitalize)
       if resp.kind_of? Array
-        as_objects ? resp.map { |r| klass.new(r) } : resp
+        as_objects ? resp.map { |r| @klass.new(r) } : resp
       else
-        as_objects ? klass.new(resp) : resp
+        as_objects ? @klass.new(resp) : resp
       end
     end
 
     def succeded?(status)
-        status >= 200 && status < 300
+      status >= 200 && status < 300
     end
 
-    def queue(resource)
-     @queue ||= TorqueBox::Messaging::Queue.new("/queues/#{resource}")
+    def queue
+     @queue ||= TorqueBox::Messaging::Queue.new("/queues/#{@resource}")
     end
 
     def call(params, as_new_objects=false)
-      status, _, data = *(queue(@resource).publish_and_receive(params, persistant: false))
-      if succeded?(status)
-        values = load_data(data,@resource,as_new_objects)
-      end
-      values
+      status, _, data = *(queue.publish_and_receive(params, persistant: false))
+      values = load_data(data,@resource,as_new_objects) if data && !data.empty?
+      [ succeded?(status), values ]
     end
 
-    def initialize(resource)
+    def initialize(resource, klass)
       @resource = resource
-      @queue =  TorqueBox::Messaging::Queue.new("/queues/#{@resource}")
+      @klass = klass
     end
   end
 

@@ -3,6 +3,7 @@
 require 'pry'
 require 'nasreddin/remote'
 require 'nasreddin/resource'
+require 'nasreddin/api-server'
 
 RSpec.configure do |config|
  config.mock_with :mocha
