@@ -12,19 +12,20 @@ module Nasreddin
   #   end
   class Resource
     class<<self
-      attr_accessor :resource
+      attr_accessor :resource, :remote
 
       def subclasses; (@subclasses ||= []); end
 
       def inherited(sub)
         subclasses << sub
         sub.resource = @resource
+        sub.remote = @remote
       end
 
       # Allows fetching of all entities without requiring filtering
       # parameters.
       def all
-        remote_call({ method: 'GET', params: {} })
+        remote.call({ method: 'GET', params: {} }, true)
       end
 
       # Allows searching for a specific entity or a collection of
@@ -41,8 +42,8 @@ module Nasreddin
       def find(*args)
         params = args.last.kind_of?(Hash) ? args.pop : {}
         id = args.shift
-
-        remote_call({ method: 'GET', id: id, params: params })
+        
+        remote.call({ method: 'GET', id: id, params: params }, true)
       end
 
       # Allows creating a new record in one shot
@@ -59,32 +60,12 @@ module Nasreddin
       # Car.destroy(15)
       # # => true or false
       def destroy(id)
-        !remote_call({ method: 'DELETE', id: id, params: {} }).nil?
+        remote.call({ method: 'DELETE', id: id, params: {} }).nil?
       end
+    end
 
-
-      def queue
-        @queue ||= TorqueBox::Messaging::Queue.new("/queues/#{@resource}")
-      end
-
-      def load_data(data, as_objects = true)
-        resp = MultiJson.load(data)
-        resp = resp[@resource] if resp.keys.include?(@resource)
-        if resp.kind_of? Array
-          as_objects ? resp.map { |r| new(r) } : resp
-        else
-          as_objects ? new(resp) : resp
-        end
-      end
-
-      def remote_call(params, as_objects=true)
-        status, _, data = *(queue.publish_and_receive(params, persistant: false))
-        if status == 200
-          load_data(data,as_objects)
-        else
-          nil
-        end
-      end
+    def remote
+        self.class.send(:remote)
     end
 
     # Custom to_json implementation
@@ -93,14 +74,6 @@ module Nasreddin
       @data.to_json(options)
     end
 
-    def remote_call(params)
-      if values = self.class.remote_call(params,false)
-        @data = values
-        true
-      else
-        false
-      end
-    end
 
     # Checks if the current instance has
     # already been deleted
@@ -121,9 +94,9 @@ module Nasreddin
       raise SaveError.new("Cannot save a deleted resource") if deleted?
 
       if @data['id'].to_s.empty?
-        remote_call({ method: 'POST', params: @data })
+       @data = remote.call({ method: 'POST', params: @data })
       else
-        remote_call({ method: 'PUT', id: @data['id'], params: @data })
+       @data = remote.call({ method: 'PUT', id: @data['id'], params: @data })
       end
     end
 
@@ -134,7 +107,7 @@ module Nasreddin
     # # => true or false
     def destroy
       if !@deleted
-        @deleted = remote_call({ method: 'DELETE', id: @data['id'], params: {} })
+        @deleted = !! remote.call({ method: 'DELETE', id: @data['id'], params: {} })
       end
     end
 
@@ -173,7 +146,8 @@ module Nasreddin
     klass = Resource.subclasses.find { |k| k.resource == name }
     unless klass
       klass = Class.new(Resource)
-      klass.resource = name
+      klass.resource = name 
+      klass.remote = Nasreddin::RemoteTorqueboxAdapter.new(name)
     end
     klass
   end
