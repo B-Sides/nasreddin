@@ -1,4 +1,5 @@
-.torquespec
-pkg
+Gemfile.lock
 doc
+pkg
+.torquespec
 .yardoc
