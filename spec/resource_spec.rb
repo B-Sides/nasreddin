@@ -1,19 +1,20 @@
 require 'spec_helper'
 
 describe Nasreddin::Resource do
+  let(:foo) { stub_everything() }
 
-   let(:foo) { stub_everything() }
+  def stub_remote_call_and_ensure(&block)
+    Foo.expects(:remote_call).with do |params|
+        params.should be_an_instance_of(Hash)
+        block.call(params)
+    end.returns([200, foo])
+  end
 
-
-   def stub_remote_call_and_ensure(&block)
-      Foo.remote.expects(:call).with do |params,as_objects|
-          params.should be_an_instance_of(Hash)
-          block.call(params)
-      end.returns(foo)
-   end
 
    describe "as consumer" do
-
+    before do
+      TorqueBox::Messaging::Queue.stubs(:new).returns(stub_everything())
+    end
        it "should be able to search an object by :id" do
          stub_remote_call_and_ensure do |arg|
             arg[:method].should == 'GET'
@@ -23,7 +24,7 @@ describe Nasreddin::Resource do
          Foo.find(1).should eq(foo)
        end
 
-       it "should be able to search an object by params" do 
+       it "should be able to search an object by params" do
          stub_remote_call_and_ensure do |arg|
             arg[:method].should == 'GET'
             arg[:params].should == { 'bar' => 'bar' }
@@ -66,5 +67,4 @@ describe Nasreddin::Resource do
            foo.deleted?.should be_true
        end
    end
-
 end
