@@ -21,10 +21,19 @@ module Nasreddin
         sub.resource = @resource
       end
 
+      def remote
+        @remote ||= Nasreddin::RemoteTorqueboxAdapter.new(@resource, self)
+      end
+
+      def remote_call(params = {}, as_objects=true)
+        success, values = remote.call(params, as_objects)
+        values
+      end
+
       # Allows fetching of all entities without requiring filtering
       # parameters.
       def all
-        call_api({ method: 'GET' })
+        remote_call({ method: 'GET' })
       end
 
       # Allows searching for a specific entity or a collection of
@@ -42,7 +51,7 @@ module Nasreddin
         params = args.last.kind_of?(Hash) ? args.pop : {}
         id = args.shift
 
-        call_api({ method: 'GET', id: id, params: params })
+        remote_call({ method: 'GET', id: id, params: params })
       end
 
       # Allows creating a new record in one shot
@@ -59,52 +68,18 @@ module Nasreddin
       # Car.destroy(15)
       # # => true or false
       def destroy(id)
-        !call_api({ method: 'DELETE', id: id }).nil?
+        remote_call({ method: 'DELETE', id: id }, false).empty?
       end
+    end
 
-      def queue
-        @queue ||= TorqueBox::Messaging::Queue.new("/queues/#{@resource}")
-      end
-
-      def load_data(data, as_objects)
-        resp = MultiJson.load(data)
-        resp = resp[@resource] if resp.keys.include?(@resource)
-        if resp.kind_of? Array
-          as_objects ? resp.map { |r| new(r) } : resp
-        else
-          as_objects ? new(resp) : resp
-        end
-      end
-
-      def call_api(params)
-        status, data = remote_call(params)
-        case status
-        when 200...300
-          data
-        else
-          nil
-        end
-      end
-
-      def remote_call(params, as_objects = true)
-        status, _, data = *(queue.publish_and_receive(params, persistant: false))
-        [ status, load_data(data, as_objects) ]
-      end
+    def remote
+      self.class.send(:remote)
     end
 
     # Custom to_json implementation
     # passes through options
     def to_json(options={})
       @data.to_json(options)
-    end
-
-    # Calls the remote api
-    # Loads any data provided into the instance
-    # returns true if the status was in the 200 range
-    def call_api(params)
-      status, values = self.class.remote_call(params, false)
-      @data = values if values && !values.empty?
-      (200...300) === status
     end
 
     # Checks if the current instance has
@@ -126,10 +101,16 @@ module Nasreddin
       raise SaveError.new("Cannot save a deleted resource") if deleted?
 
       if @data['id'].to_s.empty?
-        call_api({ method: 'POST', params: @data })
+       remote_call({ method: 'POST', params: @data })
       else
-        call_api({ method: 'PUT', id: @data['id'], params: @data })
+       remote_call({ method: 'PUT', id: @data['id'], params: @data })
       end
+    end
+
+    def remote_call(params)
+      success, values = remote.call(params, false)
+      @data = values if values && !values.empty?
+      success
     end
 
     # Destroys the current resource instance
@@ -138,8 +119,8 @@ module Nasreddin
     # car.destroy
     # # => true or false
     def destroy
-      if !@deleted
-        @deleted = call_api({ method: 'DELETE', id: @data['id'] })
+      if !deleted?
+        @deleted = remote_call({ method: 'DELETE', id: @data['id'] })
       end
     end
 
