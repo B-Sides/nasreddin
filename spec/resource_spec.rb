@@ -52,7 +52,7 @@ describe Nasreddin::Resource do
            foo = Foo.new 'id' => 1, 'bar' => 'bar'
            foo.bar = 'qux'
            foo.save
-
+           foo.bar.should == 'qux'
        end
 
        it "should be able to delete an object" do

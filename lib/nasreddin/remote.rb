@@ -22,7 +22,7 @@ module Nasreddin
     def queue(resource)
      @queue ||= TorqueBox::Messaging::Queue.new("/queues/#{resource}")
     end
-    
+
     def call(params, as_new_objects=false)
       status, _, data = *(queue(@resource).publish_and_receive(params, persistant: false))
       if succeded?(status)
