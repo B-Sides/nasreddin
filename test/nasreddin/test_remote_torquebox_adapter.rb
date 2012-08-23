@@ -17,17 +17,6 @@ describe Nasreddin::RemoteTorqueboxAdapter do
         @remote.queue.should.equal true
     end
 
-    it "should send .publish_and_receive to Torquebox and return a Hash" do
-        stubbed_torquebox = stub
-        obj = {foo: 'bar'}
-        serialized_obj = MultiJson.dump(obj)
-        TorqueBox::Messaging::Queue.expects(:new).returns(stubbed_torquebox)
-        stubbed_torquebox.expects(:publish_and_receive).with({},persistant:false).returns([200,nil,serialized_obj])
-        status,values = @remote.call({})
-        status.should.equal true
-        values.should.equal 'bar'
-    end
-    
     describe "should send .publish_and_receive" do
 
         before do
