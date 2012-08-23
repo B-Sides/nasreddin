@@ -3,6 +3,7 @@ require 'multi_json'
 
 module Nasreddin
   class RemoteTorqueboxAdapter
+    attr_accessor :resource, :klass
 
     def load_data(data,resource, as_objects = true)
       resp = MultiJson.load(data)
@@ -15,7 +16,7 @@ module Nasreddin
     end
 
     def succeded?(status)
-      status >= 200 && status < 300
+      status > 199 && status < 300
     end
 
     def queue

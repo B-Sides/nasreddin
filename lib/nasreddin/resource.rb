@@ -72,10 +72,6 @@ module Nasreddin
       end
     end
 
-    def remote
-      self.class.send(:remote)
-    end
-
     # Custom to_json implementation
     # passes through options
     def to_json(options={})
@@ -153,6 +149,13 @@ module Nasreddin
     def respond_to?(mid, include_private=false)
       @data.keys.include?(mid.to_s) || super
     end
+
+    private
+
+    def remote
+      self.class.send(:remote)
+    end
+
   end
 
   def self.Resource(name)
