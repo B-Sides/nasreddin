@@ -3,6 +3,7 @@ require 'multi_json'
 
 module Nasreddin
   class RemoteTorqueboxAdapter
+    attr_accessor :resource, :klass
 
     def load_data(data,resource, as_objects = true)
       resp = MultiJson.load(data)
