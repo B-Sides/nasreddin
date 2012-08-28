@@ -1,4 +1,4 @@
-require 'stringio'
+rcequire 'stringio'
 require 'uri'
 
 module Nasreddin
@@ -9,8 +9,8 @@ module Nasreddin
       @app = app
       @threads = []
       if options[:resources]
-         options[:resources].each do |resource|
-            @threads << Thread.new { Nasreddin::APIServerResource.new(resource).run }
+        options[:resources].each do |resource|
+          @threads << Thread.new { Nasreddin::APIServerResource.new(resource,@app).run }
         end
       else
         $stderr.puts "WARNING: Nasreddin::APIServer is being used without any resources specified!"
@@ -37,12 +37,13 @@ module Nasreddin
         'HTTP_USER_AGENT'   => 'NasreddinAPI'
     }
 
-    def initialize(resource)
+    def initialize(resource,app)
       @resource = resource
-      @queue = TorqueBox::Messaging::Queue.start("/queues/#{@resource}", durable: false)
+      @app = app
     end
 
     def run
+      @queue = TorqueBox::Messaging::Queue.start("/queues/#{@resource}", durable: false)
       begin
         loop do
           @queue.receive_and_publish do |msg|
