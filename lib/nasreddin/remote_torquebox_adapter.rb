@@ -20,7 +20,7 @@ module Nasreddin
     end
 
     def queue
-     @queue ||= TorqueBox::Messaging::Queue.new("/queues/#{@resource}")
+      @queue ||= TorqueBox::Messaging::Queue.start("/queues/#{@resource}", durable: false)
     end
 
     def call(params, as_new_objects=false)
