@@ -1,3 +1,3 @@
 require 'nasreddin/version'
 require 'nasreddin/resource'
-require 'nasreddin/remote'
+require 'nasreddin/remote_torquebox_adapter'
