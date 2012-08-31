@@ -59,6 +59,8 @@ module Nasreddin
 
 
     def process_incoming_message(msg)
+        return process_heartbeat(msg)  if heartbeat?(msg)
+
         begin
           status, headers, body = @app.call(env(msg))
 
@@ -71,6 +73,14 @@ module Nasreddin
         end
 
         [status, headers, resp]
+    end
+
+    def heartbeat?(msg)
+        msg['resource'] == '__heartbeat__'
+    end
+
+    def heartbeat(msg)
+
     end
 
     def env(msg)
