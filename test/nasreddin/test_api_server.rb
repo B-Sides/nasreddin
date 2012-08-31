@@ -5,6 +5,8 @@ describe Nasreddin::APIServerResource do
 
     let(:resp) { [200,{}, StringIO.new('bar') ] }
     let(:resource_stubbed) { Nasreddin::APIServerResource.new('prefix','foo',stub()) }
+    let(:heartbeat_msg) { {'resource' => '__heartbeat__' } }
+    let(:msg) { {'resource' => 'foo' } }
 
     it "should have a DEFAULT_ENV hash" do
       Nasreddin::APIServerResource::DEFAULT_ENV.class.should.equal Hash
@@ -14,7 +16,7 @@ describe Nasreddin::APIServerResource do
         app = stub(:call => resp)
         resource = Nasreddin::APIServerResource.new("prefix","foo",app)
         resource.expects(:env).returns(nil)
-        result =  resource.process_incoming_message(nil)
+        result =  resource.process_incoming_message({})
         # this fails, I suppose its a shoulda bug
         # result.should.equal [200,{},"bar"]
         result[0].should.equal 200
@@ -42,5 +44,10 @@ describe Nasreddin::APIServerResource do
         env['PATH_INFO'].should.equal 'prefix/foo/123/path'
         env[:other].should.equal 'value'
 
+    end
+
+    it "should handle heartbeat messages" do
+        resource_stubbed.heartbeat?(heartbeat_msg).should.equal true
+        resource_stubbed.heartbeat?(msg).should.not.equal true
     end
 end
