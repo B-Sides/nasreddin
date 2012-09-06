@@ -5,7 +5,7 @@ describe Nasreddin::APIServerResource do
 
     let(:resp) { [200,{}, StringIO.new('bar') ] }
     let(:resource_stubbed) { Nasreddin::APIServerResource.new('prefix','foo',stub()) }
-    let(:heartbeat_msg) { {'resource' => '__heartbeat__' } }
+    let(:heartbeat_msg) { {'__heartbeat__' => true } }
     let(:msg) { {'resource' => 'foo' } }
 
     it "should have a DEFAULT_ENV hash" do
@@ -47,7 +47,7 @@ describe Nasreddin::APIServerResource do
     end
 
     it "should handle heartbeat messages" do
-        resource_stubbed.heartbeat?(heartbeat_msg).should.equal true
-        resource_stubbed.heartbeat?(msg).should.not.equal true
+        resource_stubbed.is_heartbeat?(heartbeat_msg).should.equal true
+        resource_stubbed.is_heartbeat?(msg).should.not.equal true
     end
 end
