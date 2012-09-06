@@ -76,11 +76,11 @@ module Nasreddin
     end
 
     def heartbeat?(msg)
-        msg['resource'] == '__heartbeat__'
+        msg['__heartbeat__']
     end
 
     def heartbeat(msg)
-
+        [200, nil, "OK"]
     end
 
     def env(msg)
