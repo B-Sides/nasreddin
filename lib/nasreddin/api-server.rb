@@ -7,19 +7,30 @@ module Nasreddin
 
     def initialize(app, options = {})
       @app = app
-      @threads = []
-      if options[:resources]
-        options[:resources].each do |resource|
-          @threads << Thread.new { Nasreddin::APIServerResource.new(options[:route_prefix],resource,@app).run }
+      @threads = {}
+      @resources = options[:resources]
+      if @resources
+        @resources.each do |resource|
+          @threads[resource] = Thread.new { Nasreddin::APIServerResource.new(options[:route_prefix],resource,@app).run }
         end
       else
         $stderr.puts "WARNING: Nasreddin::APIServer is being used without any resources specified!"
       end
-      @threads.map(&:join)
+      @threads.values.map(&:join)
     end
 
     def call(env)
-      @app.call(env)
+      if is_heartbeat?(env)
+          res=env['resource'] = env['resources'].pop
+          env["resources.#{res}"] = @resources
+          @threads[res].call(env)
+      else
+        @app.call(env)
+      end
+    end
+
+    def is_heartbeat?(env)
+      env['__hearbeat__']
     end
 
   end
@@ -57,12 +68,15 @@ module Nasreddin
       end
     end
 
+    def call(env)
+        @app.call(env)
+    end
 
     def process_incoming_message(msg)
-        return process_heartbeat(msg)  if heartbeat?(msg)
+        return process_heartbeat(msg)  if is_heartbeat?(msg)
 
         begin
-          status, headers, body = @app.call(env(msg))
+          status, headers, body = call(env(msg))
 
           resp = ''
           body.each { |d| resp += d.to_s }
@@ -75,7 +89,7 @@ module Nasreddin
         [status, headers, resp]
     end
 
-    def heartbeat?(msg)
+    def is_heartbeat?(msg)
         msg['__heartbeat__']
     end
 
