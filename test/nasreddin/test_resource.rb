@@ -14,6 +14,26 @@ describe Nasreddin::Resource do
       @foo = mock()
     end
 
+    it "should pass through .to_json to @data" do
+      mock_data = mock()
+      foo = Foo.new
+      # implementation detail
+      foo.instance_variable_set(:@data, mock_data)
+
+      mock_data.expects(:to_json).with({})
+      foo.to_json()
+    end
+
+    it "should pass through .as_json to @data" do
+      mock_data = mock()
+      foo = Foo.new
+      # implementation detail
+      foo.instance_variable_set(:@data, mock_data)
+
+      mock_data.expects(:as_json).with({})
+      foo.as_json()
+    end
+
     it "should be able to search an object by :id" do
          stub_remote_call_and_ensure(Foo) do |arg|
             arg[:method].should == 'GET'

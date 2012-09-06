@@ -73,9 +73,15 @@ module Nasreddin
     end
 
     # Custom to_json implementation
-    # passes through options
+    # passes through options to @data
     def to_json(options={})
       @data.to_json(options)
+    end
+
+    # Custom as_json implementation
+    # passes through options to @data
+    def as_json(options={})
+      @data.as_json(options)
     end
 
     # Checks if the current instance has
