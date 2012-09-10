@@ -61,7 +61,13 @@ module Nasreddin
 
     private
     def queryize(params = {})
-      params.map { |key, value| URI.encode("#{key}=#{value}") }.join('&') unless params.nil?
+      params.map do |key, value|
+        if value.is_a? Array
+          value.map { |v| URI.encode("#{key}[]=#{v}") }
+        else
+          URI.encode("#{key}=#{value}")
+        end
+      end.join('&') unless params.nil?
     end
   end
 end
