@@ -16,7 +16,7 @@ module Nasreddin
       else
         $stderr.puts "WARNING: Nasreddin::APIServer is being used without any resources specified!"
       end
-      @threads.values.map(&:join)
+      #@threads.values.map(&:join)
     end
 
     def call(env)
@@ -61,7 +61,7 @@ module Nasreddin
     def run
       begin
         loop do 
-           queue.receive_and_publish method(:process_incoming_message)
+           queue.receive_and_publish &method(:process_incoming_message)
         end
       ensure
         queue.stop
