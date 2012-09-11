@@ -3,3 +3,4 @@ doc
 pkg
 .torquespec
 .yardoc
+.rvmrc
