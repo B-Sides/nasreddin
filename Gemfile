@@ -5,5 +5,5 @@ gemspec
 gem 'torquebox-backstage'
 gem 'torquespec'
 gem 'pry'
-gem 'rspec'
+gem 'bacon'
 gem 'mocha'

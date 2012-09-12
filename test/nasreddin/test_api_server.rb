@@ -51,3 +51,17 @@ describe Nasreddin::APIServerResource do
         resource_stubbed.is_heartbeat?(msg).should.not.equal true
     end
 end
+
+#describe "its a rack application" do
+    #extend Rack::Test::Methods
+
+    #def app
+        #Nasreddin::APIServer.new(stub.call([200,'hash','body'],{ resources: ['foo','bar']}))
+    #end
+
+    #it "is working" do
+        #get '/'
+        #last_response.should.be.ok
+        #last_response.body.should.equal 'body'
+    #end
+#end
