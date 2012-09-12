@@ -37,6 +37,16 @@ module Nasreddin
       params.has_key? '__hearbeat__'
     end
 
+    def call(env)
+      if is_heartbeat?(env)
+          res=env['resource'] = env['resources'].pop
+          env["resources.#{res}"] = @resources
+          @threads[res].call(env)
+      else
+        @app.call(env)
+      end
+    end
+
   end
 
   class APIServerResource 
@@ -91,10 +101,6 @@ module Nasreddin
         end
 
         [status, headers, resp]
-    end
-
-    def is_heartbeat?(msg)
-        msg[:params].has_key? '__heartbeat__'
     end
 
     def heartbeat_ok
