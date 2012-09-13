@@ -20,3 +20,18 @@ end
 class Bacon::Context
     include BaconExtensions
 end
+
+class MockServer
+  BASIC_APP = lambda do |env|
+    [200, {"ContentType" => "text/plain"}, ["body"]]
+  end
+
+  def initialize(options, app = BASIC_APP)
+    Rack::Builder.new do
+      use Rack::Lint
+      use Nasreddin::APIServer, options
+      use Rack::Lint
+      run app
+    end.to_app
+  end
+end

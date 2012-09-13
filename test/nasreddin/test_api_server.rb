@@ -52,16 +52,16 @@ describe Nasreddin::APIServerResource do
     end
 end
 
-#describe "its a rack application" do
-    #extend Rack::Test::Methods
+describe "its a rack application" do
+  extend Rack::Test::Methods
 
-    #def app
-        #Nasreddin::APIServer.new(stub.call([200,'hash','body'],{ resources: ['foo','bar']}))
-    #end
+  def app
+    MockServer.new
+  end
 
-    #it "is working" do
-        #get '/'
-        #last_response.should.be.ok
-        #last_response.body.should.equal 'body'
-    #end
-#end
+  it "is working" do
+    get '/'
+    last_response.should.be.ok
+    last_response.body.should.equal 'body'
+  end
+end

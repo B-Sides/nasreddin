@@ -26,27 +26,14 @@ module Nasreddin
           res = params['resource'] = params['resources'].pop
           params["resources.#{res}"] = @resources
           Nasreddin::Resource(@resource).remote_call(params)
-
       else
         @app.call(env)
-
       end
     end
 
     def is_heartbeat?(params)
       params.has_key? '__hearbeat__'
     end
-
-    def call(env)
-      if is_heartbeat?(env)
-          res=env['resource'] = env['resources'].pop
-          env["resources.#{res}"] = @resources
-          @threads[res].call(env)
-      else
-        @app.call(env)
-      end
-    end
-
   end
 
   class APIServerResource 
