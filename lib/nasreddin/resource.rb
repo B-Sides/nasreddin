@@ -78,6 +78,12 @@ module Nasreddin
       @data.to_json(options)
     end
 
+    # Custom as_json implementation
+    # passes through options to @data
+    def as_json(options={})
+      @data.as_json(options)
+    end
+
     # Checks if the current instance has
     # already been deleted
     def deleted?
