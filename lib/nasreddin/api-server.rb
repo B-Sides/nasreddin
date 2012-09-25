@@ -69,6 +69,10 @@ module Nasreddin
       end
     end
 
+    def is_heartbeat?(msg)
+        msg[:params] && msg[:params].has_key?('__heartbeat__')
+    end
+
     def call(env)
         @app.call(env)
     end
