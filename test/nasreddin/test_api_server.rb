@@ -5,7 +5,7 @@ describe Nasreddin::APIServerResource do
 
     let(:resp) { [200,{}, StringIO.new('bar') ] }
     let(:resource_stubbed) { Nasreddin::APIServerResource.new('prefix','foo',stub()) }
-    let(:heartbeat_msg) { {'__heartbeat__' => true } }
+    let(:heartbeat_msg) { {:params => {'__heartbeat__' => true } } }
     let(:msg) { {'resource' => 'foo' } }
 
     it "should have a DEFAULT_ENV hash" do
@@ -54,9 +54,11 @@ end
 
 describe "its a rack application" do
   extend Rack::Test::Methods
+  let(:resp) { [200,{}, StringIO.new('bar') ] }
 
   def app
-    MockServer.new
+    TorqueBox::Messaging::Queue.expects(:start).once.returns(stub(:call => resp))
+    MockServer.new  resources: %w| foo |
   end
 
   it "is working" do
