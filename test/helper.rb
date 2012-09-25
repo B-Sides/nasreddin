@@ -16,6 +16,10 @@ module BaconExtensions
            end
        end
     end
+
+    def xit(name, &block)
+        puts "pending: #{name}"
+    end
 end
 
 class Bacon::Context
@@ -34,5 +38,9 @@ class MockServer
       use Rack::Lint
       run app
     end.to_app
+  end
+
+  def call(env)
+    [200, {"ContentType" => "text/plain"}, ["body"]]
   end
 end
