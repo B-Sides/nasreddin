@@ -17,6 +17,17 @@ describe Nasreddin::RemoteTorqueboxAdapter do
         @remote.queue.should.equal true
     end
 
+    describe "synchronous queue timeout (returning nil from publish_and_receive)" do
+      it "should not be considered successful" do
+        stubbed_queue = stub
+        TorqueBox::Messaging::Queue.expects(:new).returns(stubbed_queue)
+        stubbed_queue.expects(:publish_and_receive).returns(nil)
+        status, _ = @remote.call({})
+
+        status.should.equal false
+      end
+    end
+
     describe "should send .publish_and_receive" do
 
         before do

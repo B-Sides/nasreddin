@@ -16,7 +16,7 @@ module Nasreddin
     end
 
     def succeded?(status)
-      status > 199 && status < 300
+      status != nil && status > 199 && status < 300
     end
 
     def queue
