@@ -7,7 +7,7 @@ module Nasreddin
 
     def load_data(data,resource, as_objects = true)
       resp = MultiJson.load(data)
-      resp = resp[@resource] if resp.keys.include?(@resource)
+      resp = resp[@resource] if resp.respond_to?(:keys) && resp.keys.include?(@resource)
       if resp.kind_of? Array
         as_objects ? resp.map { |r| @klass.new(r) } : resp
       else
