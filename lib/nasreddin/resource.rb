@@ -33,7 +33,7 @@ module Nasreddin
       # Allows fetching of all entities without requiring filtering
       # parameters.
       def all
-        remote_call({ method: 'GET' })
+        remote_call({ method: 'GET' }, true)
       end
 
       # Allows searching for a specific entity or a collection of
