@@ -104,6 +104,7 @@ module Nasreddin
       method = msg.delete(:method) || 'GET'
       env['REQUEST_METHOD'] = method.to_s.upcase
       env['QUERY_STRING'] = queryize(msg.delete(:params))
+      env['SCRIPT_NAME'] = @route_prefix || ''
       env['PATH_INFO'] = "#{@route_prefix}/#{@resource}/#{msg.delete(:id)}/#{msg.delete(:path)}"
       env.merge!(msg)
       env
