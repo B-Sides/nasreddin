@@ -20,7 +20,7 @@ Gem::Specification.new do |s|
 
   s.add_runtime_dependency 'torquebox', '~> 2.2.0'
   s.add_runtime_dependency 'rack', '~> 1.4.1'
-  s.add_runtime_dependency 'multi_json', '~> 1.3.4'
+  s.add_runtime_dependency 'multi_json', '~> 1.5.0'
   s.add_development_dependency 'rack-test', '~> 0.6.1'
   s.add_development_dependency 'torquebox-server', '~> 2.2.0'
   s.add_development_dependency 'kramdown', '~> 0.13.7'
