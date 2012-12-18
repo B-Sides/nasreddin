@@ -85,7 +85,7 @@ module Nasreddin
 
           resp = ''
           body.each { |d| resp += d.to_s }
-          body.close
+          body.close if body.respond_to?(:close)
 
         rescue Exception => err
           resp = "#{err.message}\n\n#{err.backtrace.join("\n")}"
