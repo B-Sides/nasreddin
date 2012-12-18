@@ -103,9 +103,16 @@ module Nasreddin
       env['rack.url_scheme'] = (msg.delete(:secure) ? 'https' : 'http')
       method = msg.delete(:method) || 'GET'
       env['REQUEST_METHOD'] = method.to_s.upcase
-      env['QUERY_STRING'] = queryize(msg.delete(:params))
-      env['SCRIPT_NAME'] = @route_prefix || ''
-      env['PATH_INFO'] = "#{@route_prefix}/#{@resource}/#{msg.delete(:id)}/#{msg.delete(:path)}"
+      env['QUERY_STRING'] = queryize(msg.delete(:params)) || ''
+      env['SCRIPT_NAME'] = "/#{@route_prefix}" || ''
+      env['PATH_INFO'] = "/#{@resource}"
+      if ((id = msg.delete(:id)))
+        env['PATH_INFO'] += "/#{id}"
+      end
+      if ((path = msg.delete(:path)))
+        env['PATH_INFO'] += "/#{path}"
+      end
+      env['REQUEST_URI'] = "#{env['SCRIPT_NAME']}#{env['PATH_INFO']}"
       env.merge!(msg)
       env
     end
