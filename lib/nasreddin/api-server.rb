@@ -60,12 +60,10 @@ module Nasreddin
     end
 
     def run
-      begin
-        loop do 
-           queue.receive_and_publish &method(:process_incoming_message)
-        end
-      ensure
-        queue.stop
+      loop do
+        queue.receive_and_publish &method(:process_incoming_message)
+      rescue Exception => err
+        $stderr.puts "Error processing request: #{err.message}"
       end
     end
 
