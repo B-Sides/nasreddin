@@ -64,9 +64,11 @@ module Nasreddin
         begin
           queue.receive_and_publish &method(:process_incoming_message)
         rescue Exception => err
-          $stderr.puts "Error processing request: #{err.message}"
-          @queue = TorqueBox::Messaging::Queue.start("/queues/#{@resource}", durable: false)
-          break unless @queue
+          $stderr.puts "Error processing request: #{err.class} - #{err.message}"
+          if err.kind_of?(Java::JavaxJms::JMSException)
+            queue.stop
+            break
+          end
         end
       end
     end
