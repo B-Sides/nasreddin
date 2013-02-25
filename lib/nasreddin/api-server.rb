@@ -66,11 +66,11 @@ module Nasreddin
         rescue Exception => err
           $stderr.puts "Error processing request: #{err.class} - #{err.message}"
           if err.kind_of?(Java::JavaxJms::JMSException)
-            queue.stop
             break
           end
         end
       end
+      queue.stop
     end
 
     def is_heartbeat?(msg)
