@@ -117,7 +117,7 @@ module Nasreddin
         env['PATH_INFO'] += "/#{path}"
       end
       env['REQUEST_URI'] = "#{env['SCRIPT_NAME']}#{env['PATH_INFO']}"
-      env.merge!(msg)
+      env.merge!(Hash[msg.map { |k, v| [k.to_s, v] }])
       env
     end
 
