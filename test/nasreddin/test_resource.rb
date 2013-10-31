@@ -62,7 +62,7 @@ describe Nasreddin::Resource do
 
        Foo.create( 'bar' => 'bar' ).should.equal true
     end
-    
+
     it "should be able to update an object" do
        foo = Foo.new 'id' => 1, 'bar' => 'bar'
 
@@ -78,7 +78,7 @@ describe Nasreddin::Resource do
 
     it "should be able to delete an object" do
        foo = Foo.new 'id' => 1, 'bar' => 'bar'
-       stub_remote_call_and_ensure(foo,[true,foo]) do |arg|
+       stub_remote_call_and_ensure(foo, true) do |arg|
            arg[:method].should == 'DELETE'
            arg[:id].should == 1
        end
@@ -87,12 +87,12 @@ describe Nasreddin::Resource do
     end
 
     it "should be able to destroy an object by :id" do
-    @foo.expects(:empty?).returns(true)
-     stub_remote_call_and_ensure(Foo) do |arg|
+      @foo.expects(:empty?).returns(true)
+      stub_remote_call_and_ensure(Foo) do |arg|
         arg[:method].should == 'DELETE'
         arg[:id].should.equal 1
-     end
+      end
 
-     Foo.destroy(1).should.equal true
+      Foo.destroy(1).should.equal true
     end
 end

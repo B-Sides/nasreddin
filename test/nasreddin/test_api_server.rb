@@ -17,10 +17,7 @@ describe Nasreddin::APIServerResource do
         resource = Nasreddin::APIServerResource.new("prefix","foo",app)
         resource.expects(:env).returns(nil)
         result =  resource.process_incoming_message({})
-        # this fails, I suppose its a shoulda bug
-        # result.should.equal [200,{},"bar"]
-        result[0].should.equal 200
-        result[2].should.equal "bar"
+        result.should.equal [200,{},"bar"]
     end
 
     it "should connect to hornetq only once" do
@@ -37,12 +34,12 @@ describe Nasreddin::APIServerResource do
             path: 'path',
             other: 'value'
         }
-        env= resource_stubbed.env(msg)
+        env = resource_stubbed.env(msg)
         env['rack.url_scheme'].should.equal 'https'
         env['REQUEST_METHOD'].should.equal 'POST'
         env['QUERY_STRING'].should.equal 'key=value'
-        env['PATH_INFO'].should.equal 'prefix/foo/123/path'
-        env[:other].should.equal 'value'
+        env['REQUEST_URI'].should.equal '/prefix/foo/123/path'
+        env['other'].should.equal 'value'
 
     end
 
@@ -57,7 +54,7 @@ describe "its a rack application" do
   let(:resp) { [200,{}, StringIO.new('bar') ] }
 
   def app
-    TorqueBox::Messaging::Queue.expects(:start).once.returns(stub(:call => resp))
+    TorqueBox::Messaging::Queue.expects(:start).once.returns(stub(:receive_and_publish => resp))
     MockServer.new  resources: %w| foo |
   end
 
